@@ -1,26 +1,13 @@
 from discord.ext import commands
 import discord
 import os
-import random
 
 MY_USER_ID = int(os.getenv("MY_USER_ID"))
 
-class Commands(commands.Cog):
+class AdminCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        with open("quotes.txt", "r", encoding="utf-8") as f:
-            self.quotes = [line.strip() for line in f if line.strip()]
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        pass
-
-    # Checks if bot is responsive
-    @discord.app_commands.command(name="ping", description="Check if the bot is responsive")
-    async def ping(self, interaction: discord.Interaction):
-        await interaction.response.send_message("🏓 Pong!")
-
-    # Sends a message to a specific user (OWNER ONLY)
     @discord.app_commands.command(name="dmuser", description="DM a user by ID (OWNER ONLY)")
     async def dmuser(self, interaction: discord.Interaction, user_id: str, message: str):
         if interaction.user.id != MY_USER_ID:
@@ -36,7 +23,6 @@ class Commands(commands.Cog):
         except Exception as e:
             await interaction.response.send_message(f"❌ An error occurred: {e}")
 
-    # Sends a message to a specific channel (OWNER ONLY)
     @discord.app_commands.command(name="sendchannel", description="Send a message to a channel by ID (OWNER ONLY)")
     async def sendchannel(self, interaction: discord.Interaction, channel_id: str, message: str):
         if interaction.user.id != MY_USER_ID:
@@ -52,20 +38,13 @@ class Commands(commands.Cog):
         except Exception as e:
             await interaction.response.send_message(f"❌ An error occurred: {e}")
 
-    # Sends a random quote
-    @discord.app_commands.command(name="quote", description="Send a random quote")
-    async def quote(self, interaction: discord.Interaction):
-        if not self.quotes:
-            await interaction.response.send_message("❌ No quotes available.")
-            return
-        random_quote = random.choice(self.quotes)
-        if " - " in random_quote:
-            quote_text, author = random_quote.rsplit(" - ", 1)
-            embed_description = f"{quote_text}\n\n— {author}"
-        else:
-            embed_description = random_quote
-        embed = discord.Embed(description=embed_description, color=0x38bdf8)
-        await interaction.response.send_message(embed=embed)
+    @discord.app_commands.command(name="setstatus", description="Set the bot's status (OWNER ONLY)")
+    async def setstatus(self, interaction: discord.Interaction, status_text: str):
+        if interaction.user.id != MY_USER_ID:
+            return await interaction.response.send_message("❌ You are not allowed to use this command.", ephemeral=True)
+        activity = discord.Game(name=status_text)
+        await self.bot.change_presence(activity=activity)
+        await interaction.response.send_message(f"✅ Bot status updated to: {status_text}", ephemeral=True)
 
 async def setup(bot):
-    await bot.add_cog(Commands(bot))
+    await bot.add_cog(AdminCommands(bot))

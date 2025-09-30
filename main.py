@@ -25,11 +25,14 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 @bot.event
 async def on_ready():
     await bot.tree.sync()
+    activity = discord.Game(name="Soft School 📘")
+    await bot.change_presence(status=discord.Status.online, activity=activity)
     print(f"{bot.user.name} is here to help!")
 
 async def main():
     async with bot:
-        await bot.load_extension("cogs.commands")
+        await bot.load_extension("cogs.admin_commands")
+        await bot.load_extension("cogs.user_commands")
         await bot.start(token)
 
 asyncio.run(main())
